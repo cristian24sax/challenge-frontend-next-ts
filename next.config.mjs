@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: "out",
+  distDir: 'out',
   env: {
     API_URL: process.env.API_URL,
   },
