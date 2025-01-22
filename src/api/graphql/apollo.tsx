@@ -1,5 +1,5 @@
-"use client";
-import React from "react";
+'use client';
+import React from 'react';
 import {
   ApolloClient,
   ApolloLink,
@@ -7,9 +7,9 @@ import {
   HttpLink,
   InMemoryCache,
   Operation,
-} from "@apollo/client";
+} from '@apollo/client';
 
-import config from "@/config/app";
+import config from '@/config/app';
 
 type LinkConditionPair = {
   condition: (operation: Operation) => boolean;
@@ -35,7 +35,7 @@ const client = new ApolloClient({
   link: getApolloLink([
     {
       condition: (operation: Operation) =>
-        operation.getContext().clientName === "api",
+        operation.getContext().clientName === 'api',
       link: apiLink,
     },
     { condition: () => true, link: apiLink },

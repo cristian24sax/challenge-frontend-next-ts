@@ -1,9 +1,9 @@
-import { useQuery } from "@apollo/client";
-import { queryPrueba } from "../queries/prueba";
+import { useQuery } from '@apollo/client';
+import { queryPrueba } from '../queries/prueba';
 
 export const usePrueba = () => {
   return useQuery(queryPrueba, {
-    context: { clientName: "api" },
+    context: { clientName: 'api' },
     variables: {},
   });
 };
