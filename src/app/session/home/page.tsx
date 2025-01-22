@@ -1,64 +1,79 @@
-"use client";
-import Image from "next/image";
+'use client';
 
-import questionIcon from "@/assets/question.svg";
+import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+import { useProducts } from '@/api/graphql/hooks/useProducts';
+import useProductManager from '@/hooks/useProductManager';
+import useProductForm from '@/hooks/useProductForm';
+import ProductForm from './components/ProductForm';
+import ProductFilters from './components/ProductFilters';
+import ProductTable from './components/ProductTable';
+import Pagination from './components/Pagination';
+import Modal from '@/components/modal/Modal';
 
-const Home = () => {
-  const form = (
-    <form className="flex gap-4">
-      <div className="flex gap-1">
-        <span>SKU:</span>
-        <input type="text" className="bg-gray-600" />
-      </div>
-      <div className="flex gap-1">
-        <span>PRODUCTO:</span>
-        <input type="text" className="bg-gray-600" />
-      </div>
-      <button className="bg-white text-black px-3 py-1 rounded">Agregar</button>
-    </form>
-  );
+const ProductsPage = () => {
+  const [filterName, setFilterName] = useState('');
+  const [filterSku, setFilterSku] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const table = (
-    <table>
-      <thead>
-        <tr>
-          <th className="border border-white">ID</th>
-          <th className="border border-white">SKU</th>
-          <th className="border border-white">PRODUCTO</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  );
+  const accountId = Cookies.get('accountId');
+
+  const { loading, currentPage, setCurrentPage, addProduct } =
+    useProductManager();
+
+  const { data, refetch } = useProducts(currentPage, 10, {
+    accountIds: accountId ? [accountId] : [],
+    names: filterName ? [filterName] : undefined,
+    skus: filterSku ? [filterSku] : undefined,
+  });
+
+  const formik = useProductForm(addProduct);
+
+  useEffect(() => {
+    refetch();
+  }, [filterName, filterSku, currentPage, refetch]);
+
+  const handleFilterSubmit = () => {
+    setCurrentPage(1);
+    refetch();
+  };
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-black">
-      <div className="flex flex-col border border-white">
-        <span>El email del usuario es: </span>
-        <span className="flex gap-2 text-xs">
-          <Image src={questionIcon} alt="question" width={18} height={18} />
-          Colocar el email que fue tipeado en el Login y guardar el ID para
-          usarlo en la creación de productos
-        </span>
-      </div>
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
+      <h1 className="text-2xl font-bold mb-6">Gestión de Productos</h1>
+      <ProductFilters
+        filterName={filterName}
+        filterSku={filterSku}
+        setFilterName={setFilterName}
+        setFilterSku={setFilterSku}
+        onFilterSubmit={handleFilterSubmit}
+      />
 
-      <div className="flex flex-col p-2 border border-white m-6">
-        <span className="flex gap-2 text-xs">
-          <Image src={questionIcon} alt="question" width={18} height={18} />
-          Relacionar con mutación de creación de producto (vincular cuenta)
-        </span>
-        {form}
-      </div>
+      <ProductTable
+        products={data?.products || []}
+        loading={loading}
+        noProducts={!data?.products.length}
+        onAddProduct={handleOpenModal}
+      />
 
-      <div className="flex flex-col p-2">
-        <span className="flex gap-2 text-xs">
-          <Image src={questionIcon} alt="question" width={18} height={18} />
-          Relacionar con query de listado de productos (vincular cuenta)
-        </span>
-        {table}
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        hasNextPage={data?.products.length > 0}
+      />
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <ProductForm formik={formik} onClose={handleCloseModal} />
+      </Modal>
     </main>
   );
 };
 
-export default Home;
+export default ProductsPage;
